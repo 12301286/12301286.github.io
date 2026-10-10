@@ -1,4 +1,4 @@
-## Hi there 👋
+## 환영합니다. 👋
 
 <!--
 **12301286/12301286** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
