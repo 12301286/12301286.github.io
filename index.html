@@ -3,44 +3,253 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>환영합니다</title>
+  <title>미니 퀴즈 챌린지</title>
+  <!-- Tailwind CSS CDN 로드 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
   <style>
     body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #f8f9fa;
-      color: #333333;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-
-    .container {
-      text-align: center;
-      padding: 2.5rem;
-      background-color: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.96) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
     }
-
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-      color: #1a1a1a;
-    }
-
-    p {
-      font-size: 1.1rem;
-      color: #666666;
-      margin: 0;
+    .animate-pop {
+      animation: popIn 0.35s ease-out forwards;
     }
   </style>
 </head>
-<body>
-  <div class="container">
-    <h1>안녕하세요</h1>
-    <p>환영합니다.</p>
-  </div>
+
+<body class="bg-slate-50 min-h-screen text-slate-800 flex items-center justify-center p-4 selection:bg-indigo-100 selection:text-indigo-800">
+
+  <main class="w-full max-w-lg bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden transition-all duration-300">
+    
+    <!-- 상단 헤더 & 프로그레스 바 -->
+    <header class="p-6 pb-4 border-b border-slate-100 bg-white">
+      <div class="flex items-center justify-between mb-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-600">
+          <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+          상식 퀴즈
+        </span>
+        <span id="progress-text" class="text-sm font-medium text-slate-500">문제 1 / 4</span>
+      </div>
+      <!-- 진행도 바 -->
+      <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+        <div id="progress-fill" class="bg-indigo-600 h-full rounded-full transition-all duration-500 ease-out" style="width: 25%;"></div>
+      </div>
+    </header>
+
+    <section id="quiz-card" class="p-6 sm:p-8 animate-pop">
+      <!-- 질문 텍스트 -->
+      <h2 id="question-text" class="text-xl sm:text-2xl font-bold text-slate-900 leading-snug min-h-[64px] flex items-center">
+        질문을 불러오는 중입니다...
+      </h2>
+
+      <!-- 선택지 버튼 컨테이너 -->
+      <div id="options-container" class="mt-6 flex flex-col gap-3">
+        <!-- 자바스크립트로 선택지 버튼 동적 생성 -->
+      </div>
+
+      <!-- 정답 해설 및 피드백 메시지 박스 -->
+      <div id="feedback-box" class="hidden mt-5 p-4 rounded-2xl text-sm font-medium transition-all"></div>
+
+      <!-- 다음 버튼 -->
+      <div class="mt-6 pt-2">
+        <button id="next-btn" class="hidden w-full py-3.5 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-semibold shadow-md shadow-indigo-200 transition-all duration-200 flex items-center justify-center gap-2">
+          <span>다음 문제</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <section id="result-card" class="hidden p-8 sm:p-10 text-center animate-pop">
+      <div class="w-20 h-20 mx-auto rounded-3xl bg-indigo-50 flex items-center justify-center text-4xl mb-5 shadow-inner" id="result-emoji">
+        🎉
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">퀴즈 완료!</h2>
+      <p id="result-desc" class="text-slate-500 mt-2 text-sm sm:text-base">수고하셨습니다. 당신의 점수는?</p>
+      
+      <!-- 최종 점수 표시 -->
+      <div class="my-6 p-6 rounded-2xl bg-slate-50 border border-slate-100 inline-block w-full max-w-xs">
+        <div class="text-slate-400 text-xs font-semibold tracking-wider uppercase mb-1">총 점수</div>
+        <div class="text-4xl font-extrabold text-indigo-600" id="final-score">0 / 4</div>
+      </div>
+
+      <!-- 재도전 버튼 -->
+      <button id="restart-btn" class="w-full max-w-xs py-3.5 px-6 rounded-2xl bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-semibold shadow-md transition-all duration-200 inline-flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span>다시 풀기</span>
+      </button>
+    </section>
+
+  </main>
+
+  <script>
+    // 퀴즈 문제 데이터 목록
+    const quizData = [
+      {
+        question: "웹 페이지의 구조와 콘텐츠를 정의하는 마크업 언어는?",
+        options: ["CSS", "HTML", "Python", "SQL"],
+        correctIndex: 1,
+        explanation: "HTML(HyperText Markup Language)은 웹 페이지의 기본 골격을 잡는 마크업 언어입니다."
+      },
+      {
+        question: "지구에서 가장 넓은 면적을 차지하는 대양은 어디일까요?",
+        options: ["대서양", "인도양", "태평양", "북극해"],
+        correctIndex: 2,
+        explanation: "태평양은 전 세계 바다 면적의 약 절반에 달하는 가장 큰 바다입니다."
+      },
+      {
+        question: "커피의 주성분 중 졸음을 쫓아주고 집중력을 돕는 성분은?",
+        options: ["카페인", "타닌", "카테킨", "글루코스"],
+        correctIndex: 0,
+        explanation: "카페인은 중추신경을 자극하여 졸음을 깨우는 대표적인 성분입니다."
+      },
+      {
+        question: "대한민국의 국보 제1호로 지정되었던 건축물은?",
+        options: ["흥인지문 (동대문)", "숭례문 (남대문)", "경복궁 근정전", "첨성대"],
+        correctIndex: 1,
+        explanation: "조선시대 한양도성의 정문이었던 숭례문(남대문)입니다."
+      }
+    ];
+
+    // 애플리케이션 상태 관리 변수
+    let currentIndex = 0;
+    let score = 0;
+    let isAnswered = false;
+
+    // DOM 요소 선택
+    const quizCard = document.getElementById('quiz-card');
+    const resultCard = document.getElementById('result-card');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackBox = document.getElementById('feedback-box');
+    const nextBtn = document.getElementById('next-btn');
+    const progressText = document.getElementById('progress-text');
+    const progressFill = document.getElementById('progress-fill');
+    const finalScore = document.getElementById('final-score');
+    const resultEmoji = document.getElementById('result-emoji');
+    const resultDesc = document.getElementById('result-desc');
+    const restartBtn = document.getElementById('restart-btn');
+
+    function loadQuestion() {
+      isAnswered = false;
+      const currentQuiz = quizData[currentIndex];
+
+      // 상단 진행도 업데이트
+      progressText.textContent = `문제 ${currentIndex + 1} / ${quizData.length}`;
+      const percentage = ((currentIndex + 1) / quizData.length) * 100;
+      progressFill.style.width = `${percentage}%`;
+
+      // 텍스트 및 UI 초기화
+      questionText.textContent = `${currentIndex + 1}. ${currentQuiz.question}`;
+      feedbackBox.className = 'hidden';
+      feedbackBox.textContent = '';
+      nextBtn.classList.add('hidden');
+      optionsContainer.innerHTML = '';
+
+      // 선택지 버튼 생성
+      currentQuiz.options.forEach((option, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'w-full text-left px-5 py-4 rounded-2xl border-2 border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 font-medium text-slate-700 transition-all flex items-center justify-between group';
+        btn.innerHTML = `
+          <span>${option}</span>
+          <span class="w-6 h-6 rounded-full border border-slate-300 flex items-center justify-center text-xs text-slate-400 group-hover:border-indigo-400 group-hover:text-indigo-600 transition-colors">
+            ${idx + 1}
+          </span>
+        `;
+
+        btn.addEventListener('click', () => handleOptionClick(idx, btn));
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function handleOptionClick(selectedIndex, selectedBtn) {
+      if (isAnswered) return;
+      isAnswered = true;
+
+      const currentQuiz = quizData[currentIndex];
+      const buttons = optionsContainer.querySelectorAll('button');
+      const isCorrect = selectedIndex === currentQuiz.correctIndex;
+
+      if (isCorrect) {
+        score++;
+        selectedBtn.classList.remove('border-slate-200', 'bg-white', 'text-slate-700', 'hover:bg-slate-50');
+        selectedBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-800', 'font-semibold');
+        
+        feedbackBox.textContent = `✓ 정답입니다! ${currentQuiz.explanation}`;
+        feedbackBox.className = 'mt-5 p-4 rounded-2xl text-sm font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 block';
+      } else {
+        selectedBtn.classList.remove('border-slate-200', 'bg-white', 'text-slate-700', 'hover:bg-slate-50');
+        selectedBtn.classList.add('border-rose-400', 'bg-rose-50', 'text-rose-800', 'font-semibold');
+
+        // 정답 버튼을 녹색으로 강조
+        const correctBtn = buttons[currentQuiz.correctIndex];
+        correctBtn.classList.remove('border-slate-200', 'bg-white', 'text-slate-700');
+        correctBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-800', 'font-semibold');
+
+        feedbackBox.textContent = `✗ 오답입니다. ${currentQuiz.explanation}`;
+        feedbackBox.className = 'mt-5 p-4 rounded-2xl text-sm font-medium bg-rose-50 text-rose-800 border border-rose-200 block';
+      }
+
+      // 모든 버튼 비활성화 처리
+      buttons.forEach(btn => {
+        btn.classList.add('cursor-default');
+        btn.classList.remove('hover:bg-slate-50', 'hover:border-slate-300');
+      });
+
+      // '다음 문제' 버튼 표시
+      nextBtn.classList.remove('hidden');
+    }
+
+    function showResults() {
+      quizCard.classList.add('hidden');
+      resultCard.classList.remove('hidden');
+
+      finalScore.textContent = `${score} / ${quizData.length}`;
+
+      if (score === quizData.length) {
+        resultEmoji.textContent = '🏆';
+        resultDesc.textContent = '완벽합니다! 모든 문제를 맞히셨어요.';
+      } else if (score >= 2) {
+        resultEmoji.textContent = '👏';
+        resultDesc.textContent = '훌륭해요! 대부분의 문제를 맞히셨습니다.';
+      } else {
+        resultEmoji.textContent = '🌱'; 
+        resultDesc.textContent = '아쉽네요! 다시 한 번 도전해 보세요.';
+      }
+    }
+
+    // 다음 버튼 클릭 이벤트
+    nextBtn.addEventListener('click', () => {
+      currentIndex++;
+      if (currentIndex < quizData.length) {
+        loadQuestion();
+      } else {
+        showResults();
+      }
+    });
+
+    // 재도전 버튼 클릭 이벤트
+    restartBtn.addEventListener('click', () => {
+      currentIndex = 0;
+      score = 0;
+      resultCard.classList.add('hidden');
+      quizCard.classList.remove('hidden');
+      loadQuestion();
+    });
+
+    // 첫 실행
+    window.onload = loadQuestion;
+  </script>
 </body>
 </html>
